@@ -8,12 +8,11 @@ public class BootstrapEntryPoint : MonoBehaviour
 {
     [SerializeField] private List<EntryPoint> entryPoints = new List<EntryPoint>();
 
-    private IEnumerator Start()
+    private void Start()
     {
         foreach (EntryPoint entryPoint in entryPoints)
         {
             entryPoint.Initialize();
         }
-        yield return null;
     }
 }

@@ -8,4 +8,9 @@ public abstract class EntryPoint : MonoBehaviour, IInitializable, IDisposable
 {
     public abstract void Initialize();
     public abstract void Dispose();
+
+    ~EntryPoint()
+    {
+        Dispose();
+    }
 }

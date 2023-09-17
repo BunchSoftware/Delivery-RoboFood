@@ -8,11 +8,11 @@ public class MenuEntryPoint : EntryPoint
 {
     public override void Dispose()
     {
-        throw new NotImplementedException();
+        
     }
 
     public override void Initialize()
     {
-        throw new NotImplementedException();
+        
     }
 }

@@ -2,27 +2,45 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class CarController : MonoBehaviour
 {
     private float horizontalInput, verticalInput;
     private float currentSteerAngle, currentbreakForce;
     private bool isBreaking;
+    private bool isActiveLampStopSignals = false;
+    private Rigidbody rigidbody;
 
-    // Settings
+    [Header("Settings Wheel")]
     [SerializeField] private float motorForce, breakForce, maxSteerAngle;
-
-    // Wheel Colliders
     [SerializeField] private WheelCollider frontLeftWheelCollider, frontRightWheelCollider;
     [SerializeField] private WheelCollider rearLeftWheelCollider, rearRightWheelCollider;
-
-    // Wheels
     [SerializeField] private Transform frontLeftWheelTransform, frontRightWheelTransform;
     [SerializeField] private Transform rearLeftWheelTransform, rearRightWheelTransform;
 
-
+    [Header("Settings Lamp")]
+    [SerializeField] private List<LampStopSignal> lampStopSignals;
     [SerializeField] private GameObject frontLeftLamp, frontRightLamp;
     [SerializeField] private KeyCode keyLamp;
+
+    [Header("Rigibody")]
+    [SerializeField] private Transform centerOfMass;
+
+    public Action<float> GetSpeedCar;
+
+    [SerializeField] private Text speedText;
+
+    private void Start()
+    {
+        rigidbody = GetComponent<Rigidbody>();
+        rigidbody.centerOfMass = centerOfMass.localPosition;
+    }
+
+    public void Initialize()
+    {
+        
+    }
 
     private void FixedUpdate()
     {
@@ -36,6 +54,14 @@ public class CarController : MonoBehaviour
     {
         if (Input.GetKeyDown(keyLamp))
             ChangeActiveFrontLamp();
+        if (Input.GetKey(KeyCode.Space) && isActiveLampStopSignals == false)
+        {
+            StopAllCoroutines();
+            StartCoroutine(ChangeActiveStopSignals(lampStopSignals, 1.5f));
+            isActiveLampStopSignals = true;
+        }
+
+        speedText.text = $"Speed - {Math.Round((rigidbody.velocity.magnitude * 3.6f) / 2, 0)} km/h";
     }
 
     private void GetInput()
@@ -53,12 +79,15 @@ public class CarController : MonoBehaviour
 
     private void HandleMotor()
     {
-        if (transform.up.y < 0.7f)
+        if (transform.up.y < -0.7f)
             transform.up = Vector3.up;
 
         frontLeftWheelCollider.motorTorque = verticalInput * motorForce;
         frontRightWheelCollider.motorTorque = verticalInput * motorForce;
+        rearLeftWheelCollider.motorTorque = verticalInput * motorForce;
+        rearRightWheelCollider.motorTorque = verticalInput * motorForce;
         currentbreakForce = isBreaking ? breakForce : 0f;
+
         ApplyBreaking();
     }
 
@@ -114,5 +143,20 @@ public class CarController : MonoBehaviour
     {
         ChangeActiveLamp(frontLeftLamp);
         ChangeActiveLamp(frontRightLamp);
+    }
+
+    private IEnumerator ChangeActiveStopSignals(List<LampStopSignal> lampStopSignals, float time)
+    {
+        foreach(var stopSignal in lampStopSignals)
+        {
+            stopSignal.ChangeActiveStopSignalLamp();
+        }
+        yield return new WaitForSeconds(time);
+        isActiveLampStopSignals = false;
+
+        foreach (var stopSignal in lampStopSignals)
+        {
+            stopSignal.ChangeActiveStopSignalLamp();
+        }
     }
 }

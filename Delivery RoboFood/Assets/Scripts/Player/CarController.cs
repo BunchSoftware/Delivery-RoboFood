@@ -20,12 +20,22 @@ public class CarController : MonoBehaviour
     [SerializeField] private Transform frontLeftWheelTransform, frontRightWheelTransform;
     [SerializeField] private Transform rearLeftWheelTransform, rearRightWheelTransform;
 
+
+    [SerializeField] private GameObject frontLeftLamp, frontRightLamp;
+    [SerializeField] private KeyCode keyLamp;
+
     private void FixedUpdate()
     {
         GetInput();
         HandleMotor();
         HandleSteering();
         UpdateWheels();
+    }
+
+    private void Update()
+    {
+        if (Input.GetKeyDown(keyLamp))
+            ChangeActiveFrontLamp();
     }
 
     private void GetInput()
@@ -38,10 +48,14 @@ public class CarController : MonoBehaviour
 
         // Breaking Input
         isBreaking = Input.GetKey(KeyCode.Space);
+
     }
 
     private void HandleMotor()
     {
+        if (transform.up.y < 0.7f)
+            transform.up = Vector3.up;
+
         frontLeftWheelCollider.motorTorque = verticalInput * motorForce;
         frontRightWheelCollider.motorTorque = verticalInput * motorForce;
         currentbreakForce = isBreaking ? breakForce : 0f;
@@ -76,7 +90,29 @@ public class CarController : MonoBehaviour
         Vector3 pos;
         Quaternion rot;
         wheelCollider.GetWorldPose(out pos, out rot);
-        wheelTransform.rotation = rot;
         wheelTransform.position = pos;
+
+        if (wheelTransform.localEulerAngles.y == 90)
+        {
+            wheelTransform.Rotate(new Vector3(0, 0, wheelCollider.rpm / 60 * 360 * Time.deltaTime), Space.Self);
+        }
+        else if (wheelTransform.localEulerAngles.y == 270)
+        {
+            wheelTransform.Rotate(new Vector3(0, 0, -wheelCollider.rpm / 60 * 360 * Time.deltaTime), Space.Self);
+        }
+    }
+
+    private void ChangeActiveLamp(GameObject lamp)
+    {
+        if (lamp.activeInHierarchy)
+            lamp.SetActive(false);
+        else
+            lamp.SetActive(true);
+    }
+
+    public void ChangeActiveFrontLamp()
+    {
+        ChangeActiveLamp(frontLeftLamp);
+        ChangeActiveLamp(frontRightLamp);
     }
 }

@@ -6,6 +6,8 @@ using UnityEngine;
 
 public class GameplayEntryPoint : EntryPoint
 {
+    [SerializeField] private CarController carController;
+
     public override void Dispose()
     {
         
@@ -13,6 +15,6 @@ public class GameplayEntryPoint : EntryPoint
 
     public override void Initialize()
     {
-        
+        carController.Initialize();
     }
 }

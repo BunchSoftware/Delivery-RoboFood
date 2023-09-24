@@ -6,6 +6,8 @@ using UnityEngine;
 
 public class MenuEntryPoint : EntryPoint
 {
+    [SerializeField] private CarCanvas carCanvas;
+
     public override void Dispose()
     {
         
@@ -13,6 +15,6 @@ public class MenuEntryPoint : EntryPoint
 
     public override void Initialize()
     {
-        
+        carCanvas.Initialize();
     }
 }

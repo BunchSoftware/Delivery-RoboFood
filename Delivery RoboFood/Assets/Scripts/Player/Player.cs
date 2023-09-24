@@ -1,55 +1,78 @@
 using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting;
+using System.Linq;
 using UnityEngine;
-using UnityEngine.AI;
-using UnityEngine.UI;
-using static UnityEngine.GraphicsBuffer;
 
-public class Player : MonoBehaviour
+[RequireComponent(typeof(Rigidbody2D), typeof(Animator))]
+public class Player: MonoBehaviour
 {
     [SerializeField] private float speed;
 
-    private Rigidbody rigidbody;
+    [SerializeField] private float jumpForce;
+    private bool isGrounded = true;
+    [SerializeField] private Transform groundCheck;
+    [SerializeField] private LayerMask whatLayerMask;
+
+    [HideInInspector] public bool isRight = true;
+
+    private float checkRadius = 0.3f;
+
+    private int score = 0;
+
+    public delegate void RecountedScore(int score);
+    public event RecountedScore OnRecountedScore;
+
+    private Rigidbody2D rigidbody2D;
 
     private void Start()
     {
-        rigidbody = GetComponent<Rigidbody>();
+        rigidbody2D = GetComponent<Rigidbody2D>();
+
+        OnRecountedScore?.Invoke(score);
     }
 
+    private void Update()
+    {
+        Flip();
+        Jump();
+    }
     private void FixedUpdate()
     {
-        Run();
+        CheckGround();
+        rigidbody2D.velocity = new Vector2(speed * Input.GetAxis("Horizontal"), rigidbody2D.velocity.y );
+            
     }
-
-    public void FreezePlayer(bool isFreezing)
+    public void ZeroPhysic()
     {
-        if (isFreezing)
+        rigidbody2D.velocity = Vector2.zero;
+    }
+    private void Flip()
+    {
+        if (Input.GetAxis("Horizontal") > 0)
         {
-            rigidbody.velocity = Vector3.zero;
+            transform.localRotation = Quaternion.Euler(0, 0, 0);
+            isRight = true;
         }
-        else
+        else if(Input.GetAxis("Horizontal") < 0)
         {
+            transform.localRotation = Quaternion.Euler(0, 180, 0);
+            isRight = false;
         }
     }
-
-    private void Run()
+    private void Jump()
     {
-        if (Input.GetKey(KeyCode.W))
+        if (isGrounded & Input.GetKeyDown(KeyCode.Space))
         {
-            transform.localPosition += transform.forward * speed * Time.deltaTime;
+            rigidbody2D.AddForce(transform.up * jumpForce, ForceMode2D.Impulse);
         }
-        if (Input.GetKey(KeyCode.S))
-        {
-            transform.localPosition += -transform.forward * speed * Time.deltaTime;
-        }
-        if (Input.GetKey(KeyCode.A))
-        {
-            transform.localPosition += -transform.right * speed * Time.deltaTime;
-        }
-        if (Input.GetKey(KeyCode.D))
-        {
-            transform.localPosition += transform.right * speed * Time.deltaTime;
-        }
+    }
+    public void RecountScore(int score)
+    {
+        this.score += score;
+        OnRecountedScore?.Invoke(this.score);
+    }
+    private void CheckGround()
+    {
+        isGrounded = Physics2D.OverlapCircle(groundCheck.position, checkRadius, whatLayerMask);
     }
 }

@@ -1,9 +1,11 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
+[RequireComponent(typeof(Rigidbody))]
 public class CarController : MonoBehaviour
 {
     private float horizontalInput, verticalInput;
@@ -28,18 +30,13 @@ public class CarController : MonoBehaviour
     [SerializeField] private Transform centerOfMass;
 
     public Action<float> GetSpeedCar;
-
-    [SerializeField] private Text speedText;
-
-    private void Start()
-    {
-        rigidbody = GetComponent<Rigidbody>();
-        rigidbody.centerOfMass = centerOfMass.localPosition;
-    }
+    public Action BreakingCar;
 
     public void Initialize()
     {
-        
+        gameObject.SetActive(true);
+        rigidbody = GetComponent<Rigidbody>();
+        rigidbody.centerOfMass = centerOfMass.localPosition;
     }
 
     private void FixedUpdate()
@@ -61,7 +58,7 @@ public class CarController : MonoBehaviour
             isActiveLampStopSignals = true;
         }
 
-        speedText.text = $"Speed - {Math.Round((rigidbody.velocity.magnitude * 3.6f) / 2, 0)} km/h";
+        GetSpeedCar?.Invoke((float)Math.Round((rigidbody.velocity.magnitude * 3.6f) / 2, 0));
     }
 
     private void GetInput()
@@ -97,6 +94,7 @@ public class CarController : MonoBehaviour
         frontLeftWheelCollider.brakeTorque = currentbreakForce;
         rearLeftWheelCollider.brakeTorque = currentbreakForce;
         rearRightWheelCollider.brakeTorque = currentbreakForce;
+        BreakingCar?.Invoke();
     }
 
     private void HandleSteering()
